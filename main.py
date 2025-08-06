@@ -1,6 +1,7 @@
 import requests
 import os
 import telegram
+import time
 
 from dotenv import load_dotenv
 
@@ -35,6 +36,7 @@ def get_notifications(token_devman):
         except requests.ReadTimeout:
             continue
         except requests.exceptions.ConnectionError:
+            time.sleep(60)
             continue
 
         timestamp_response_expired = response.json().get(
