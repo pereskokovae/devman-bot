@@ -64,8 +64,8 @@ def get_notifications(token_devman):
 
 if __name__ == "__main__":
     load_dotenv()
-    token_devman = os.getenv('TOKEN_DEVMAN')
-    chat_id = os.getenv('CHAT_ID_TG_BOT')
-    api_key = os.getenv('API_KEY_TG_BOT')
+    token_devman = os.environ['TOKEN_DEVMAN']
+    chat_id = os.environ['CHAT_ID_TG_BOT']
+    api_key = os.environ['API_KEY_TG_BOT']
 
     get_notifications(token_devman)
