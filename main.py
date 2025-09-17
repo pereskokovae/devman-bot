@@ -35,12 +35,13 @@ def get_notifications(token_devman):
                 )
             response.raise_for_status()
         except requests.ReadTimeout:
-            logging.warning(
-                'The server took too long to send data from the Devman API.'
+            logger.warning(
+                '''Сервер занял слишком много времени, 
+                чтобы отправлять данные из API Devman.'''
                 )
             continue
         except requests.exceptions.ConnectionError:
-            logger.warning('There was a connection error with Devman API.')
+            logger.warning('Была ошибка подключения с Devman API.')
             time.sleep(60)
             continue
 
