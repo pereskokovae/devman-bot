@@ -2,22 +2,23 @@ import requests
 import os
 import telegram
 import time
+import logging
 
+from handlers import TelegramLogsHandler
 from dotenv import load_dotenv
 
 
-def send_message(chat_id, api_key, lesson_title, is_negative, lesson_url):
-    bot = telegram.Bot(token=api_key)
+def send_message(tg_bot, chat_id, lesson_title, is_negative, lesson_url):
 
     if is_negative:
         is_negative = 'К сожалению, в работе нашлись ошибки.'
     else:
         is_negative = '''Преподавателю все понравилось,
-                        можно приступать к следующему уроку!'''
+            можно приступать к следующему уроку!'''
 
     text = f'''У вас проверили работу {lesson_title}. \n
             {lesson_url} \n\n {is_negative}'''
-    bot.send_message(text=text, chat_id=chat_id)
+    tg_bot.send_message(text=text, chat_id=chat_id)
 
 
 def get_notifications(token_devman):
@@ -34,8 +35,12 @@ def get_notifications(token_devman):
                 )
             response.raise_for_status()
         except requests.ReadTimeout:
+            logging.warning(
+                'The server took too long to send data from the Devman API.'
+                )
             continue
         except requests.exceptions.ConnectionError:
+            logger.warning('There was a connection error with Devman API.')
             time.sleep(60)
             continue
 
@@ -54,7 +59,7 @@ def get_notifications(token_devman):
             lesson_url = new_attempts['lesson_url']
 
             send_message(
-                chat_id, api_key, lesson_title, is_negative, lesson_url
+                tg_bot, chat_id, lesson_title, is_negative, lesson_url
                 )
             continue
 
@@ -69,5 +74,19 @@ if __name__ == "__main__":
     token_devman = os.environ['TOKEN_DEVMAN']
     chat_id = os.environ['CHAT_ID_TG_BOT']
     api_key = os.environ['API_KEY_TG_BOT']
+
+    tg_bot = telegram.Bot(token=api_key)
+
+    logger = logging.getLogger("telegram-bot")
+    logger.setLevel(logging.DEBUG)
+
+    tg_handler = TelegramLogsHandler(tg_bot, chat_id)
+    tg_handler.setLevel(logging.ERROR)
+
+    formatter = logging.Formatter(
+        fmt='%(process)d %(levelname)s %(message)s',
+        )
+    tg_handler.setFormatter(formatter)
+    logger.addHandler(tg_handler)
 
     get_notifications(token_devman)
